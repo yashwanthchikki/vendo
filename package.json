@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0"
+  },
+  "name": "no-name-yet",
+  "description": "",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yashwanthchikki/no-name-yet.git"
+  },
+  "author": "yashwanth",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yashwanthchikki/no-name-yet/issues"
+  },
+  "homepage": "https://github.com/yashwanthchikki/no-name-yet#readme"
+}
