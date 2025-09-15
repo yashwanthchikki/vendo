@@ -1,52 +1,110 @@
-const jwt=require('jsonwebtoken')
-const bcrypt=require('bcrypt')
-const users=[]
-const SECRET_KEY="itachi"
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
-const signup=async(req,res,next)=>{
-    const {username,password}=req.body;
+const SECRET_KEY = "itachi";
+const connect = require("./db.js"); // Make sure db.js exports a function that connects to your DB
 
-    if (users.find(u => u.username === username)) {
-        return res.status(400).json({ message: 'User already exists' });
+// ---------------- SIGNUP ----------------
+const signup = async (req, res, next) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Username and password required" });
+  }
+
+  let db;
+  try {
+    db = await connect();
+  } catch (err) {
+    return next(new Error("Database connection error: " + err.message));
+  }
+
+  try {
+    const existingUser = await db.get(
+      "SELECT * FROM users WHERE username = ?",
+      [username]
+    );
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    users.push({ username, password: hashedPassword });
-    res.status(200).json("succusfully sign upped ")
-}
+  } catch (err) {
+    return next(new Error("Error checking user: " + err.message));
+  }
 
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-const signin=async(req,res,next)=>{
-    const {username,password}=req.body;
-    const user=users.find(u=>u.username===username)
-    if(!user){
-        res.json("no user of such name")
-    }
-    const correctpassword = await bcrypt.compare(password, user.password);
-
-    if(!correctpassword){
-        res.json("chor,chor")
-    }
-
-    const token=jwt.sign({ username: user.username }, SECRET_KEY, { expiresIn: '1h' })
-    res.json({message:"verifid",token})
-
-}
-const deleteaccount = (req, res, next) => {
-    try {
-        
-        const username = req.user.username;
-
-        
-        const index = users.findIndex(u => u.username === username);
-        if (index === -1) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        users.splice(index, 1);
-
-        res.status(200).json({ message: "User deleted successfully" });
-    } catch (err) {
-        next(err); 
-    }
+  try {
+    await db.run(
+      "INSERT INTO users (username, password) VALUES (?, ?)",
+      [username, hashedPassword]
+    );
+    return res.status(201).json({ message: "New user created successfully" });
+  } catch (err) {
+    return next(new Error("Error inserting user: " + err.message));
+  }
 };
-module.exports={signin,signup,deleteaccount}
+
+// ---------------- SIGNIN ----------------
+const signin = async (req, res, next) => {
+  const { username, password } = req.body || {};
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Username and password required" });
+  }
+
+  let db;
+  try {
+    db = await connect();
+  } catch (err) {
+    return next(new Error("Database connection error: " + err.message));
+  }
+
+  let user;
+  try {
+    user = await db.get("SELECT * FROM users WHERE username = ?", [username]);
+    if (!user) {
+      return res.status(404).json({ error: "No user with such name" });
+    }
+  } catch (err) {
+    return next(new Error("Error finding user: " + err.message));
+  }
+
+  const validPassword = await bcrypt.compare(password, user.password);
+  if (!validPassword) {
+    return res.status(401).json({ error: "Wrong password" });
+  }
+
+  // 🔑 Add user id (primary key) to JWT payload
+  const token = jwt.sign(
+    { id: user.id, username: user.username }, 
+    SECRET_KEY, 
+    { expiresIn: "1h" }
+  );
+
+  return res.json({ message: "Login successful", token });
+};
+
+// ---------------- DELETE ACCOUNT ----------------
+const deleteaccount = async (req, res, next) => {
+  // Assume middleware decoded token and set req.user
+  const { id } = req.user;
+
+  let db;
+  try {
+    db = await connect();
+  } catch (err) {
+    return next(new Error("Database connection error: " + err.message));
+  }
+
+  try {
+    const result = await db.run("DELETE FROM users WHERE id = ?", [id]);
+    if (result.changes === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({ message: "User deleted successfully" });
+  } catch (err) {
+    return next(new Error("Error deleting user: " + err.message));
+  }
+};
+
+module.exports = { signup, signin, deleteaccount };

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sign Up</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .auth-box { max-width: 300px; margin: auto; }
+    input { display: block; width: 100%; margin: 10px 0; padding: 8px; }
+    button { padding: 8px 12px; }
+    a { display: block; margin-top: 10px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="auth-box">
+    <h2>Sign Up</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="signupBtn">Sign Up</button>
+    <a href="/signin.html">Already have an account? Log in</a>
+  </div>
+
+  <script>
+    document.getElementById('signupBtn').addEventListener('click', async () => {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      const res = await fetch('/authservice/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Signup successful! Please login.");
+        window.location.href = "/signin.html";
+      } else {
+        alert(JSON.stringify(data));
+      }
+    });
+  </script>
+</body>
+</html>
