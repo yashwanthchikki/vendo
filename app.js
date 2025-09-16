@@ -5,6 +5,7 @@ const { Server } = require("socket.io");
 const path = require("path");
 
 const authServiceRoutes = require("./authservice/index");
+const setup = require("./setup/index");
 const message = require("./chat/index");
 const socketAuth = require("./Middleware/socketauth");
 const authentication = require("./Middleware/authentication");
@@ -27,11 +28,12 @@ app.use("/authservice", authServiceRoutes);
 
 // The /main route is protected by the authentication middleware.
 app.get("/main", authentication, (req, res) => {
-  console.log("i failed");
   const filePath = path.join(__dirname, "public", "main.html");
   console.log("Attempting to send file from:");
   res.sendFile(filePath);
 });
+
+app.get("/getcontact",authentication, setup.getcontact);
 
 // Attach HTTP server
 const server = http.createServer(app);
@@ -44,8 +46,7 @@ io.use(socketAuth);
 
 // Socket.IO connection handler
 io.on("connection", (socket) => {
-  console.log("Socket connected:", socket.id, "User:", socket.user.username);
-  message.handlesocket(socket, io);
+  message.handlesocket(socket, io)
 });
 
 // Error handling middleware

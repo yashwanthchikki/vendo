@@ -7,11 +7,11 @@ async function connect(){
     if(!db){
         try{
             db=await open({
-                filname:"./db.db",
+                filename:"./db.db",
                 driver:sqlite3.Database
             })
 
-            await await db.exec("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT NOT NULL,hashedPassword TEXT NOT NULL);"); 
+            await await db.exec("CREATE TABLE IF NOT EXISTS users (uid INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT NOT NULL,hashedPassword TEXT NOT NULL);"); 
         }catch(err){
             throw(err)
         }

@@ -1,27 +1,46 @@
+// message.js
+const userSockets = new Map(); // key: uid, value: array of sockets
+
 function handlesocket(socket, io) {
+    if (!socket.user) {
+        console.log("Socket has no user assigned!");
+        return;
+    }
+
+    // Add socket to user's list
+    if (!userSockets.has(socket.user.uid)) {
+        userSockets.set(socket.user.uid, []);
+    }
+    userSockets.get(socket.user.uid).push(socket);
+
     socket.on('message', (data) => {
-        const { to, text } = data; // 'to' is recipient's user id
+        const { to, text } = data;
 
-        // Find recipient socket by user id
-        const sockets = Array.from(io.sockets.sockets.values());
-        const recipientSocket = sockets.find(s => s.user && s.user.uid === to);
-
-        if (recipientSocket) {
-            // Send message to recipient
-            recipientSocket.emit('message', {
-                from: socket.user.uid,  // sender's user id
-                fromUsername: socket.user.username,
-                text
+        // Send to all sockets for recipient
+        const recipientSockets = userSockets.get(to) || [];
+        if (recipientSockets.length > 0) {
+            recipientSockets.forEach(s => {
+                s.emit('message', {
+                    from: socket.user.uid,
+                    fromUsername: socket.user.username,
+                    text
+                });
             });
         } else {
             console.log("Recipient not connected:", to);
         }
 
-        // Optional: acknowledge sender
+        // Acknowledge sender
         socket.emit('message', {
             from: socket.user.uid,
             text: text + " too"
         });
     });
+
+    socket.on('disconnect', () => {
+        const sockets = userSockets.get(socket.user.uid) || [];
+        userSockets.set(socket.user.uid, sockets.filter(s => s !== socket));
+    });
 }
-module.exports=handlesocket
+
+module.exports = {handlesocket};

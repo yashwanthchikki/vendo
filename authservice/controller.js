@@ -35,7 +35,7 @@ const signup = async (req, res, next) => {
 
   try {
     await db.run(
-      "INSERT INTO users (username, password) VALUES (?, ?)",
+      "INSERT INTO users (username,hashedPassword ) VALUES (?, ?)",
       [username, hashedPassword]
     );
     return res.status(201).json({ message: "New user created successfully" });
@@ -69,14 +69,14 @@ const signin = async (req, res, next) => {
     return next(new Error("Error finding user: " + err.message));
   }
 
-  const validPassword = await bcrypt.compare(password, user.password);
+  const validPassword = await bcrypt.compare(password, user.hashedPassword);
   if (!validPassword) {
     return res.status(401).json({ error: "Wrong password" });
   }
 
   // 🔑 Add user id (primary key) to JWT payload
   const token = jwt.sign(
-    { id: user.id, username: user.username }, 
+    { id: user.uid, username: user.username }, 
     SECRET_KEY, 
     { expiresIn: "1h" }
   );
@@ -86,25 +86,26 @@ const signin = async (req, res, next) => {
 
 // ---------------- DELETE ACCOUNT ----------------
 const deleteaccount = async (req, res, next) => {
-  // Assume middleware decoded token and set req.user
-  const { id } = req.user;
+  
+  const { id } = req.user; // from JWT payload, where you stored uid
 
-  let db;
-  try {
-    db = await connect();
-  } catch (err) {
-    return next(new Error("Database connection error: " + err.message));
-  }
+let db;
+try {
+  db = await connect();
+} catch (err) {
+  return next(new Error("Database connection error: " + err.message));
+}
 
-  try {
-    const result = await db.run("DELETE FROM users WHERE id = ?", [id]);
-    if (result.changes === 0) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    return res.status(200).json({ message: "User deleted successfully" });
-  } catch (err) {
-    return next(new Error("Error deleting user: " + err.message));
+try {
+  const result = await db.run("DELETE FROM users WHERE uid = ?", [id]);
+  if (result.changes === 0) {
+    return res.status(404).json({ message: "User not found" });
   }
+  return res.status(200).json({ message: "User deleted successfully" });
+} catch (err) {
+  return next(new Error("Error deleting user: " + err.message));
+}
+
 };
 
 module.exports = { signup, signin, deleteaccount };
