@@ -44,6 +44,7 @@ const signup = async (req, res, next) => {
   }
 };
 
+
 // ---------------- SIGNIN ----------------
 const signin = async (req, res, next) => {
   const { username, password } = req.body || {};
@@ -74,16 +75,23 @@ const signin = async (req, res, next) => {
     return res.status(401).json({ error: "Wrong password" });
   }
 
-  // 🔑 Add user id (primary key) to JWT payload
+  // Create JWT
   const token = jwt.sign(
-    { id: user.uid, username: user.username }, 
-    SECRET_KEY, 
+    { id: user.uid, username: user.username },
+    SECRET_KEY,
     { expiresIn: "1h" }
   );
 
-  return res.json({ message: "Login successful", token });
-};
+  // Send token in HTTP-only cookie
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: false, // set to true in production with HTTPS
+    sameSite: "lax",
+    maxAge: 3600 * 1000
+  });
 
+  return res.json({ message: "Login successful" });
+};
 // ---------------- DELETE ACCOUNT ----------------
 const deleteaccount = async (req, res, next) => {
   

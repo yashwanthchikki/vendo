@@ -1,8 +1,8 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
-
 const path = require("path");
+const cookieParser = require("cookie-parser");
 
 const authServiceRoutes = require("./authservice/index");
 const setup = require("./setup/index");
@@ -15,44 +15,39 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 // Routes
-// This is your initial entry point. It serves temp.html unconditionally.
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "temp.html"));
 });
 
-// This line correctly applies the auth service router.
 app.use("/authservice", authServiceRoutes);
 
-// The /main route is protected by the authentication middleware.
 app.get("/main", authentication, (req, res) => {
   const filePath = path.join(__dirname, "public", "main.html");
-  console.log("Attempting to send file from:");
+  console.log("Attempting to send file from:", filePath);
   res.sendFile(filePath);
 });
 
-app.get("/getcontact",authentication, setup.getcontact);
+app.get("/getcontact", authentication, setup.getcontact);
 
-// Attach HTTP server
+// HTTP server
 const server = http.createServer(app);
 
-// Create Socket.IO server
+// Socket.IO
 const io = new Server(server);
-
-// Socket.IO authentication middleware
 io.use(socketAuth);
 
-// Socket.IO connection handler
 io.on("connection", (socket) => {
-  message.handlesocket(socket, io)
+  message.handlesocket(socket, io);
 });
 
-// Error handling middleware
+// Error handling
 app.use(err_handaling);
 
 // Start server
 server.listen(3000, () => {
-  console.log("App is up and running at port 3000");
+  console.log("App is running on port 3000");
 });
