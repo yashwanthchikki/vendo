@@ -10,8 +10,8 @@ const message = require("./chat/index");
 const socketAuth = require("./Middleware/socketauth");
 const authentication = require("./Middleware/authentication");
 const err_handaling = require("./Middleware/err_handaling");
+const app = express()
 
-const app = express();
 
 // Middleware
 app.use(express.json());

@@ -30,11 +30,7 @@ function handlesocket(socket, io) {
             console.log("Recipient not connected:", to);
         }
 
-        // Acknowledge sender
-        socket.emit('message', {
-            from: socket.user.uid,
-            text: text + " too"
-        });
+        
     });
 
     socket.on('disconnect', () => {
