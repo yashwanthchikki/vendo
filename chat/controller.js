@@ -32,6 +32,16 @@ function handlesocket(socket, io) {
 
         
     });
+    socket.on('webrtc-signal', (data) => {
+    const { to, signal } = data;
+    const recipientSockets = userSockets.get(to) || [];
+    recipientSockets.forEach(s => s.emit('webrtc-signal', {
+        from: socket.user.uid,
+        signal
+    }));
+});
+
+    
 
     socket.on('disconnect', () => {
         const sockets = userSockets.get(socket.user.uid) || [];

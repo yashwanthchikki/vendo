@@ -3,107 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Main Chat</title>
+  <title>Main Chat & Call</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      height: 100vh;
-      display: flex;
-    }
-    /* Left column */
-    #sidebar {
-      width: 280px;
-      border-right: 1px solid #ccc;
-      display: flex;
-      flex-direction: column;
-    }
-    #searchBar {
-      padding: 10px;
-      border-bottom: 1px solid #ccc;
-      display: flex;
-    }
-    #searchInput {
-      flex: 1;
-      padding: 6px;
-    }
-    #searchBtn {
-      margin-left: 6px;
-      padding: 6px 10px;
-      background: #4cafef;
-      border: none;
-      color: white;
-      cursor: pointer;
-    }
-    #contacts {
-      flex: 1;
-      overflow-y: auto;
-    }
-    .contact {
-      padding: 10px;
-      cursor: pointer;
-      border-bottom: 1px solid #eee;
-    }
-    .contact:hover {
-      background: #f0f0f0;
-    }
+    body { font-family: Arial, sans-serif; margin: 0; height: 100vh; display: flex; }
+    #sidebar { width: 280px; border-right: 1px solid #ccc; display: flex; flex-direction: column; }
+    #searchBar { padding: 10px; border-bottom: 1px solid #ccc; display: flex; }
+    #searchInput { flex: 1; padding: 6px; }
+    #searchBtn { margin-left: 6px; padding: 6px 10px; background: #4cafef; border: none; color: white; cursor: pointer; }
+    #contacts { flex: 1; overflow-y: auto; }
+    .contact { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+    .contact:hover { background: #f0f0f0; }
 
-    /* Right column (chat) */
-    #chatPane {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    #chatHeader {
-      padding: 10px;
-      border-bottom: 1px solid #ccc;
-      font-weight: bold;
-    }
-    #chat {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-      background: #fafafa;
-    }
-    .message {
-      margin: 5px 0;
-      padding: 8px 12px;
-      border-radius: 8px;
-      max-width: 70%;
-      word-wrap: break-word;
-    }
-    .sent {
-      background: #4cafef;
-      color: white;
-      margin-left: auto;
-      text-align: right;
-    }
-    .received {
-      background: #eee;
-      margin-right: auto;
-      text-align: left;
-    }
-    #inputArea {
-      display: flex;
-      border-top: 1px solid #ccc;
-      padding: 10px;
-    }
-    #messageInput {
-      flex: 1;
-      padding: 8px;
-    }
-    #sendBtn {
-      margin-left: 8px;
-      padding: 8px 16px;
-      background: #4cafef;
-      border: none;
-      color: white;
-      cursor: pointer;
-    }
+    #chatPane { flex: 1; display: flex; flex-direction: column; }
+    #chatHeader { padding: 10px; border-bottom: 1px solid #ccc; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    #chat { flex: 1; padding: 10px; overflow-y: auto; background: #fafafa; }
+    .message { margin: 5px 0; padding: 8px 12px; border-radius: 8px; max-width: 70%; word-wrap: break-word; }
+    .sent { background: #4cafef; color: white; margin-left: auto; text-align: right; }
+    .received { background: #eee; margin-right: auto; text-align: left; }
+    #inputArea { display: flex; border-top: 1px solid #ccc; padding: 10px; }
+    #messageInput { flex: 1; padding: 8px; }
+    #sendBtn { margin-left: 8px; padding: 8px 16px; background: #4cafef; border: none; color: white; cursor: pointer; }
+
+    #callControls { display: flex; gap: 10px; align-items: center; margin-left: 10px; }
+    #callBtn, #toggleAVBtn { padding: 6px 12px; cursor: pointer; border: none; color: white; }
+    #toggleAVBtn { background-color: #4cafef; }
+    #callBtn { background-color: #4cafef; }
+    #callStatus { font-weight: bold; }
   </style>
 </head>
 <body>
-  <!-- Left: contacts + search -->
+
+  <!-- Sidebar -->
   <div id="sidebar">
     <div id="searchBar">
       <input type="text" id="searchInput" placeholder="Search username...">
@@ -112,9 +42,16 @@
     <div id="contacts"></div>
   </div>
 
-  <!-- Right: chat -->
+  <!-- Chat Pane -->
   <div id="chatPane">
-    <div id="chatHeader">No chat selected</div>
+    <div id="chatHeader">
+      <span id="chatTitle">No chat selected</span>
+      <div id="callControls">
+        <button id="callBtn">Call</button>
+        <button id="toggleAVBtn">Audio Only</button>
+        <span id="callStatus">Idle</span>
+      </div>
+    </div>
     <div id="chat"></div>
     <div id="inputArea">
       <input type="text" id="messageInput" placeholder="Type a message...">
@@ -122,21 +59,29 @@
     </div>
   </div>
 
-  <!-- Socket.IO client -->
+  <!-- Socket.IO -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
     let socket;
-    let contacts = []; // session-only list of { uid, username }
+    let contacts = [];
     let currentContact = null;
+
+    // WebRTC variables
+    let localStream = null;
+    let pc = null;
+    let isAudioOnly = true;
+    let currentCallFrom = null;
+    let callState = 'idle'; 
+    let isCaller = false;   
 
     window.addEventListener("DOMContentLoaded", () => {
       const token = localStorage.getItem("token");
-
       socket = io("http://localhost:3000", { auth: { token } });
 
       socket.on("connect", () => console.log("Connected:", socket.id));
       socket.on("disconnect", () => console.log("Disconnected"));
 
+      // Text messages
       socket.on("message", (msg) => {
         if (currentContact && msg.from === currentContact.uid) {
           addMessage("received", msg.text);
@@ -145,23 +90,162 @@
         }
       });
 
+      // WebRTC signaling
+      socket.on("webrtc-signal", async ({ from, signal }) => {
+        if (signal.type === 'offer') {
+          if (!isCaller) { 
+            currentCallFrom = from;
+            window.incomingOffer = signal;
+            callState = 'ringing';
+            updateCallButton();
+          }
+        } else if (signal.type === 'answer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(signal));
+          callState = 'in-call';
+          updateCallButton();
+        } else if (signal.candidate) {
+          await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+        }
+      });
+
       document.getElementById("sendBtn").addEventListener("click", sendMessage);
       document.getElementById("messageInput").addEventListener("keypress", (e) => {
         if (e.key === "Enter") sendMessage();
       });
-
       document.getElementById("searchBtn").addEventListener("click", searchUser);
+      document.getElementById("callBtn").addEventListener("click", handleCallBtn);
+      document.getElementById("toggleAVBtn").addEventListener("click", toggleAV);
     });
 
+    function toggleAV() {
+      isAudioOnly = !isAudioOnly;
+      document.getElementById('toggleAVBtn').textContent = isAudioOnly ? 'Audio Only' : 'Audio + Video';
+    }
+
+    function updateCallButton() {
+      const callBtn = document.getElementById('callBtn');
+      const callStatus = document.getElementById('callStatus');
+
+      if (callState === 'idle') {
+        callBtn.textContent = 'Call';
+        callBtn.style.backgroundColor = '#4cafef';
+        callStatus.textContent = 'Idle';
+      } else if (callState === 'ringing') {
+        callBtn.textContent = 'Answer';
+        callBtn.style.backgroundColor = '#4cafef';
+        callStatus.textContent = 'Ringing';
+      } else if (callState === 'in-call') {
+        callBtn.textContent = 'End Call';
+        callBtn.style.backgroundColor = '#f44336';
+        callStatus.textContent = 'In Call';
+      }
+    }
+
+    async function startCall(targetUid) {
+      isCaller = true;
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !isAudioOnly });
+      pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('webrtc-signal', { to: targetUid, signal: { candidate: event.candidate } });
+        }
+      };
+
+      pc.ontrack = (event) => {
+        let remoteVideo = document.getElementById('remoteVideo');
+        if (!remoteVideo) {
+          remoteVideo = document.createElement(isAudioOnly ? 'audio' : 'video');
+          remoteVideo.id = 'remoteVideo';
+          remoteVideo.autoplay = true;
+          remoteVideo.controls = !isAudioOnly;
+          document.body.appendChild(remoteVideo);
+        }
+        remoteVideo.srcObject = event.streams[0];
+      };
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      socket.emit('webrtc-signal', { to: targetUid, signal: offer });
+
+      callState = 'in-call'; // Caller sees In Call
+      updateCallButton();
+    }
+
+    async function answerCall(callerUid) {
+      if (!window.incomingOffer) return alert("No incoming call");
+
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !isAudioOnly });
+      pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('webrtc-signal', { to: callerUid, signal: { candidate: event.candidate } });
+        }
+      };
+
+      pc.ontrack = (event) => {
+        let remoteVideo = document.getElementById('remoteVideo');
+        if (!remoteVideo) {
+          remoteVideo = document.createElement(isAudioOnly ? 'audio' : 'video');
+          remoteVideo.id = 'remoteVideo';
+          remoteVideo.autoplay = true;
+          remoteVideo.controls = !isAudioOnly;
+          document.body.appendChild(remoteVideo);
+        }
+        remoteVideo.srcObject = event.streams[0];
+      };
+
+      await pc.setRemoteDescription(new RTCSessionDescription(window.incomingOffer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      socket.emit('webrtc-signal', { to: callerUid, signal: answer });
+
+      callState = 'in-call';
+      updateCallButton();
+      currentCallFrom = null;
+      window.incomingOffer = null;
+    }
+
+    function endCall() {
+      if (pc) {
+        pc.close();
+        pc = null;
+      }
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+      }
+      const remoteVideo = document.getElementById('remoteVideo');
+      if (remoteVideo) remoteVideo.remove();
+
+      callState = 'idle';
+      isCaller = false;
+      updateCallButton();
+    }
+
+    function handleCallBtn() {
+      if (callState === 'idle' && currentContact) {
+        startCall(currentContact.uid);
+      } else if (callState === 'ringing' && currentCallFrom) {
+        answerCall(currentCallFrom);
+      } else if (callState === 'in-call') {
+        endCall();
+      }
+    }
+
+    // Chat functions
     async function searchUser() {
       const username = document.getElementById("searchInput").value.trim();
       if (!username) return;
-
-      // Call your GET endpoint to find user by username
       try {
         const res = await fetch(`http://localhost:3000/getcontact?username=${username}`);
         if (!res.ok) throw new Error("User not found");
-        const data = await res.json(); // expect { uid, username }
+        const data = await res.json();
         addContact(data.uid, data.username);
       } catch (err) {
         alert("User not found");
@@ -182,17 +266,15 @@
 
     function openChat(contact) {
       currentContact = contact;
-      document.getElementById("chatHeader").textContent = contact.username;
-      document.getElementById("chat").innerHTML = ""; // reset chat window
+      document.getElementById("chatTitle").textContent = contact.username;
+      document.getElementById("chat").innerHTML = "";
     }
 
     function sendMessage() {
       if (!currentContact) return alert("Select a contact first");
-
       const input = document.getElementById("messageInput");
       const msg = input.value.trim();
       if (!msg) return;
-
       socket.emit("message", { to: currentContact.uid, text: msg });
       addMessage("sent", msg);
       input.value = "";
