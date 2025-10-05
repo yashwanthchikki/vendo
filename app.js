@@ -16,18 +16,21 @@ const app = express()
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+
 
 // Routes
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "temp.html"));
 });
 
+
+
+app.use(express.static(path.join(__dirname, "public")));
+
 app.use("/authservice", authServiceRoutes);
 
 app.get("/main", authentication, (req, res) => {
   const filePath = path.join(__dirname, "public", "main.html");
-  console.log("Attempting to send file from:", filePath);
   res.sendFile(filePath);
 });
 

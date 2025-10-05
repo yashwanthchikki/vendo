@@ -1,0 +1,146 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+}
+
+#sidebar {
+    width: 280px;
+    border-right: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+}
+
+#searchBar {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+}
+
+#searchInput { flex: 1; padding: 6px; }
+#searchBtn {
+    margin-left: 6px;
+    padding: 6px 10px;
+    background: #4cafef;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+#contacts { flex: 1; overflow-y: auto; }
+.contact { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+.contact:hover { background: #f0f0f0; }
+
+#chatPane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+#chatHeader {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 20; /* above video */
+    background: rgba(255,255,255,0.95);
+}
+
+#chat {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background: #fafafa;
+    z-index: 1;
+    position: relative;
+}
+
+#inputArea {
+    display: flex;
+    border-top: 1px solid #ccc;
+    padding: 10px;
+    z-index: 20;
+    position: relative;
+}
+
+#messageInput { flex: 1; padding: 8px; }
+#sendBtn {
+    margin-left: 8px;
+    padding: 8px 16px;
+    background: #4cafef;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+#callControls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-left: 10px;
+}
+
+#callBtn, #toggleAVBtn {
+    padding: 6px 12px;
+    cursor: pointer;
+    border: none;
+    color: white;
+}
+
+#toggleAVBtn { background-color: #4cafef; }
+#callBtn { background-color: #4cafef; }
+#callStatus { font-weight: bold; }
+
+/* Fullscreen call container */
+#callContainer {
+    display: none; /* hidden initially */
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+#remoteVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Responsive layout for mobile */
+@media (max-width: 768px) {
+    body { flex-direction: column; }
+
+    #sidebar {
+        width: 100%;
+        flex: 1;
+    }
+
+    #chatPane {
+        flex: 1;
+        display: none; /* hidden initially */
+        width: 100%;
+    }
+
+    #chatHeader { position: relative; }
+
+    #backBtn {
+        display: inline-block;
+        margin-right: 10px;
+        cursor: pointer;
+        color: #4cafef;
+        font-weight: bold;
+    }
+}
+
+/* Desktop view */
+@media (min-width: 769px) {
+    #backBtn { display: none; }
+}

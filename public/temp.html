@@ -46,29 +46,26 @@
   </div>
 
   <script>
-    // In temp.html
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        // Ask the server if the token cookie is valid
+        const res = await fetch("/authservice/check", { 
+          method: "GET", 
+          credentials: "include" // send cookies with the request
+        });
 
-document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        const token = localStorage.getItem("token");
-
-        if (token) {
-             window.location.href = "/main";
-            }
-
-         
-        if(!token) {
-            // No token found, redirect to sign-in
-            console.log("No token found.");
-            window.location.replace("/signin.html");
+        if (res.ok) {
+          // Token is valid, go to main page
+          window.location.href = "/main";
+        } else {
+          // Token invalid or missing, go to sign-in
+          window.location.href = "/signin.html";
         }
-
-    } catch(err) {
-        console.error("An error occurred during authentication:", err);
-        // Fallback: If any network or other error occurs, redirect to sign-in
-        window.location.replace("/signin.html");
-    }
-});
+      } catch (err) {
+        console.error("Error checking auth:", err);
+        window.location.href = "/signin.html";
+      }
+    });
   </script>
 </body>
 </html>
