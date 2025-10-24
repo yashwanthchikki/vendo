@@ -69,7 +69,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     loadContactsFromDB();
 
     const token = localStorage.getItem("token");
-    socket = io("http://localhost:3000", { auth: { token } });
+    socket = io("/", { auth: { token } });
 
     socket.on("connect", () => console.log("Connected:", socket.id));
     socket.on("disconnect", () => console.log("Disconnected"));
@@ -152,7 +152,7 @@ async function searchUser() {
     const username = document.getElementById("searchInput").value.trim();
     if (!username) return;
     try {
-        const res = await fetch(`http://localhost:3000/getcontact?username=${username}`);
+        const res = await fetch(`/getcontact?username=${username}`);
         if (!res.ok) throw new Error("User not found");
         const data = await res.json();
         addContact(data.uid, data.username);
@@ -199,7 +199,10 @@ function updateCallButton() {
 async function startCall(targetUid) {
     isCaller = true;
     localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:!isAudioOnly });
-    pc = new RTCPeerConnection({ iceServers:[{urls:'stun:stun.l.google.com:19302'}] });
+    pc = new RTCPeerConnection({ iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'turn:global.relay.metered.ca:80', username: 'openai', credential: 'openai' }
+  ] });
     localStream.getTracks().forEach(track=>pc.addTrack(track, localStream));
     pc.onicecandidate = e => { if(e.candidate) socket.emit('webrtc-signal',{to:targetUid,signal:{candidate:e.candidate}}); }
     pc.ontrack = e => { showRemoteStream(e.streams[0]); }
