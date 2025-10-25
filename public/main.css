@@ -144,3 +144,48 @@ body {
 @media (min-width: 769px) {
     #backBtn { display: none; }
 }
+
+/* Ensure chat is a vertical flex container so children can align */
+#chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;              /* space between messages */
+  padding: 10px;
+  overflow-y: auto;
+}
+
+/* Base message style */
+.message {
+  max-width: 75%;        /* prevents messages from spanning full width */
+  padding: 8px 12px;
+  border-radius: 12px;
+  line-height: 1.2;
+  word-wrap: break-word;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+}
+
+/* Received -> left */
+.message.received {
+  align-self: flex-start;
+  background: #ffffff;
+  color: #111;
+  border: 1px solid #eee;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Sent -> right */
+.message.sent {
+  align-self: flex-end;
+  background: #4cafef;
+  color: #fff;
+  border-top-right-radius: 4px;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+/* small mobile tweak so messages don't go edge-to-edge */
+@media (max-width: 480px) {
+  .message { max-width: 85%; }
+}
