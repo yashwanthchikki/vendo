@@ -59,11 +59,11 @@
           window.location.href = "/main";
         } else {
           // Token invalid or missing, go to sign-in
-          window.location.href = "/signin.html";
+          window.location.href = "/public/signin.html";
         }
       } catch (err) {
         console.error("Error checking auth:", err);
-        window.location.href = "/signin.html";
+        window.location.href = "/public/signin.html";
       }
     });
   </script>

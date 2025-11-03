@@ -4,6 +4,7 @@ const userSockets = new Map(); // key: uid, value: array of sockets
 function handlesocket(socket, io) {
     if (!socket.user) {
         console.log("Socket has no user assigned!");
+        socket.disconnect();
         return;
     }
 
@@ -14,38 +15,221 @@ function handlesocket(socket, io) {
     userSockets.get(socket.user.uid).push(socket);
 
     socket.on('message', (data) => {
-        const { to, text } = data;
+        try {
+            const { to, text } = data;
+            if (!to || !text) {
+                console.log("Invalid message data");
+                return;
+            }
 
-        // Send to all sockets for recipient
-        const recipientSockets = userSockets.get(to) || [];
-        if (recipientSockets.length > 0) {
-            recipientSockets.forEach(s => {
-                s.emit('message', {
-                    from: socket.user.uid,
-                    fromUsername: socket.user.username,
-                    text
+            // Send to all sockets for recipient
+            const recipientSockets = userSockets.get(to) || [];
+            if (recipientSockets.length > 0) {
+                recipientSockets.forEach(s => {
+                    s.emit('message', {
+                        from: socket.user.uid,
+                        fromUsername: socket.user.username,
+                        text
+                    });
                 });
-            });
-        } else {
-            console.log("Recipient not connected:", to);
+            } else {
+                console.log("Recipient not connected:", to);
+            }
+        } catch (err) {
+            console.error("Error handling message:", err);
         }
-
-        
     });
-    socket.on('webrtc-signal', (data) => {
-    const { to, signal } = data;
-    const recipientSockets = userSockets.get(to) || [];
-    recipientSockets.forEach(s => s.emit('webrtc-signal', {
-        from: socket.user.uid,
-        signal
-    }));
-});
 
-    
+    socket.on('webrtc-signal', (data) => {
+        try {
+            const { to, signal } = data;
+            if (!to || !signal) return;
+            const recipientSockets = userSockets.get(to) || [];
+            recipientSockets.forEach(s => s.emit('webrtc-signal', {
+                from: socket.user.uid,
+                signal
+            }));
+        } catch (err) {
+            console.error("Error handling webrtc-signal:", err);
+        }
+    });
+
+    socket.on('money', (data) => {
+        try {
+            const { to, amount, description } = data;
+            if (!to || !amount) return;
+            const recipientSockets = userSockets.get(to) || [];
+            if (recipientSockets.length > 0) {
+                recipientSockets.forEach(s => {
+                    s.emit('money', {
+                        from: socket.user.uid,
+                        fromUsername: socket.user.username,
+                        amount,
+                        description
+                    });
+                });
+            } else {
+                console.log("Recipient not connected:", to);
+            }
+        } catch (err) {
+            console.error("Error handling money:", err);
+        }
+    });
+
+    socket.on('orders', (data) => {
+        try {
+            const { to, orderId, customerUid, customerUsername, items, totalPrice } = data;
+            if (!to || !orderId || !items) return;
+            const recipientSockets = userSockets.get(to) || [];
+            if (recipientSockets.length > 0) {
+                recipientSockets.forEach(s => {
+                    s.emit('orders', {
+                        orderId,
+                        customerUid,
+                        customerUsername,
+                        items,
+                        totalPrice
+                    });
+                });
+            } else {
+                console.log("Recipient not connected:", to);
+            }
+        } catch (err) {
+            console.error("Error handling orders:", err);
+        }
+    });
+
+    socket.on('fetch-inventory', (data) => {
+        try {
+            const { sellerUid } = data;
+            if (!sellerUid) return;
+            const sellerSockets = userSockets.get(sellerUid) || [];
+            if (sellerSockets.length > 0) {
+                sellerSockets.forEach(s => {
+                    s.emit('fetch-inventory', {
+                        from: socket.user.uid
+                    });
+                });
+            } else {
+                console.log("Seller not connected:", sellerUid);
+            }
+        } catch (err) {
+            console.error("Error handling fetch-inventory:", err);
+        }
+    });
+
+    socket.on('inventory-data', (data) => {
+        try {
+            const { to, inventory } = data;
+            if (!to || !inventory) return;
+            const recipientSockets = userSockets.get(to) || [];
+            if (recipientSockets.length > 0) {
+                recipientSockets.forEach(s => {
+                    s.emit('inventory-data', {
+                        inventory
+                    });
+                });
+            } else {
+                console.log("Recipient not connected:", to);
+            }
+        } catch (err) {
+            console.error("Error handling inventory-data:", err);
+        }
+    });
+
+    socket.on('order-completed', (data) => {
+        try {
+            const { to, orderId, status } = data;
+            if (!to || !orderId) return;
+            const recipientSockets = userSockets.get(to) || [];
+            if (recipientSockets.length > 0) {
+                recipientSockets.forEach(s => {
+                    s.emit('order-completed', {
+                        orderId,
+                        status
+                    });
+                });
+            } else {
+                console.log("Recipient not connected:", to);
+            }
+        } catch (err) {
+            console.error("Error handling order-completed:", err);
+        }
+    });
+
+    socket.on('transaction-request', (data) => {
+        try {
+            const { transactionId, type, amount, receiverUid, senderValue } = data;
+            if (!transactionId || !receiverUid) return;
+            const receiverSockets = userSockets.get(receiverUid) || [];
+            if (receiverSockets.length > 0) {
+                receiverSockets.forEach(s => {
+                    s.emit('transaction-request', {
+                        transactionId,
+                        type,
+                        amount,
+                        senderUid: socket.user.uid,
+                        senderUsername: socket.user.username,
+                        senderValue
+                    });
+                });
+            } else {
+                console.log("Receiver not connected:", receiverUid);
+            }
+        } catch (err) {
+            console.error("Error handling transaction-request:", err);
+        }
+    });
+
+    socket.on('transaction-confirmed', (data) => {
+        try {
+            const { transactionId, type, amount, senderUid } = data;
+            if (!transactionId || !senderUid) return;
+            const senderSockets = userSockets.get(senderUid) || [];
+            if (senderSockets.length > 0) {
+                senderSockets.forEach(s => {
+                    s.emit('transaction-confirmed', {
+                        transactionId,
+                        type,
+                        amount,
+                        senderUid: socket.user.uid
+                    });
+                });
+            }
+        } catch (err) {
+            console.error("Error handling transaction-confirmed:", err);
+        }
+    });
+
+    socket.on('transaction-cancelled', (data) => {
+        try {
+            const { transactionId, receiverUid } = data;
+            // Relay cancellation to receiver
+            if (receiverUid) {
+                const receiverSockets = userSockets.get(receiverUid) || [];
+                receiverSockets.forEach(s => {
+                    s.emit('transaction-cancelled', { transactionId });
+                });
+            }
+            console.log("Transaction cancelled:", transactionId);
+        } catch (err) {
+            console.error("Error handling transaction-cancelled:", err);
+        }
+    });
 
     socket.on('disconnect', () => {
-        const sockets = userSockets.get(socket.user.uid) || [];
-        userSockets.set(socket.user.uid, sockets.filter(s => s !== socket));
+        try {
+            const sockets = userSockets.get(socket.user.uid) || [];
+            const remaining = sockets.filter(s => s !== socket);
+            if (remaining.length === 0) {
+                // Clean up empty entry
+                userSockets.delete(socket.user.uid);
+            } else {
+                userSockets.set(socket.user.uid, remaining);
+            }
+        } catch (err) {
+            console.error("Error handling disconnect:", err);
+        }
     });
 }
 

@@ -75,7 +75,7 @@ Client-side chat history is persisted locally via SQL.js (max 50 messages per co
 - Schema is auto-created:
   ```sql
   CREATE TABLE IF NOT EXISTS users (
-    uid INTEGER PRIMARY KEY AUTOINCREMENT,
+    uid TEXT PRIMARY KEY,
     username TEXT NOT NULL,
     hashedPassword TEXT NOT NULL
   );

@@ -11,7 +11,7 @@ async function connect(){
                 driver:sqlite3.Database
             })
 
-            await await db.exec("CREATE TABLE IF NOT EXISTS users (uid INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT NOT NULL,hashedPassword TEXT NOT NULL);"); 
+            await db.exec("CREATE TABLE IF NOT EXISTS users (uid TEXT PRIMARY KEY,username TEXT NOT NULL,hashedPassword TEXT NOT NULL);"); 
         }catch(err){
             throw(err)
         }

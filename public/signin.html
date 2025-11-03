@@ -10,6 +10,9 @@
     input, button { padding: 0.75rem; border-radius: 4px; border: 1px solid #ccc; }
     button { background-color: #007bff; color: white; cursor: pointer; border: none; }
     .message { margin-top: 1rem; text-align: center; color: red; }
+    .toggle-link { margin-top: 1rem; text-align: center; }
+    .toggle-link a { color: #007bff; text-decoration: none; cursor: pointer; }
+    .toggle-link a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -21,6 +24,9 @@
       <button type="submit">Sign In</button>
     </form>
     <div id="message" class="message"></div>
+    <div class="toggle-link">
+      Don't have an account? <a href="/public/signup.html">Sign Up</a>
+    </div>
   </div>
 
   <script>
@@ -45,6 +51,10 @@
 
         const result = await response.json();
         if (!response.ok) throw new Error(result.message || 'Signin failed');
+
+        // Store uid and username in localStorage
+        if (result.uid) localStorage.setItem('uid', result.uid);
+        if (result.username) localStorage.setItem('username', result.username);
 
         // Redirect; cookie sent automatically
         messageDiv.textContent = 'Sign-in successful!';

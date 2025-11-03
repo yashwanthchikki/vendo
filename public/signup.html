@@ -17,7 +17,7 @@
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
     <button id="signupBtn">Sign Up</button>
-    <a href="/signin.html">Already have an account? Log in</a>
+    <a href="/public/signin.html">Already have an account? Log in</a>
   </div>
 
   <script>
@@ -34,7 +34,7 @@
       const data = await res.json();
       if (res.ok) {
         alert("Signup successful! Please login.");
-        window.location.href = "/signin.html";
+        window.location.href = "/public/signin.html";
       } else {
         alert(JSON.stringify(data));
       }

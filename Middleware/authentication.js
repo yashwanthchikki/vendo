@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const SECRET_KEY = "itachi";
+const SECRET_KEY = process.env.JWT_SECRET || "itachi";
 
 const authMiddleware = (req, res, next) => {
     // Try header first, then cookie

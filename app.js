@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -23,15 +24,13 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "temp.html"));
 });
 
-
-
-app.use(express.static(path.join(__dirname, "public")));
+// Serve static files from public
+app.use("/public", express.static(path.join(__dirname, "public")));
 
 app.use("/authservice", authServiceRoutes);
 
 app.get("/main", authentication, (req, res) => {
-  const filePath = path.join(__dirname, "public", "main.html");
-  res.sendFile(filePath);
+  res.sendFile(path.join(__dirname, "public", "main.html"));
 });
 
 app.get("/getcontact", authentication, setup.getcontact);

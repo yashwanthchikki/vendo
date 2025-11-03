@@ -114,6 +114,147 @@ body {
     object-fit: cover;
 }
 
+/* Money Bar */
+#moneyBar {
+    padding: 8px 10px;
+    background: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+    text-align: right;
+    font-weight: bold;
+}
+
+#moneyDisplay {
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+#moneyDisplay.positive {
+    color: #27ae60;
+    background: #d5f4e6;
+}
+
+#moneyDisplay.negative {
+    color: #e74c3c;
+    background: #fadbd8;
+}
+
+#moneyDisplay.neutral {
+    color: #7f8c8d;
+}
+
+/* Transaction Cards */
+#transactionCards {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    width: 320px;
+    max-height: 500px;
+    overflow-y: auto;
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.transaction-card {
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.transaction-card.pending {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+}
+
+.transaction-card.request {
+    background: #d1ecf1;
+    border: 1px solid #17a2b8;
+}
+
+.transaction-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.transaction-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.transaction-info strong {
+    font-size: 14px;
+}
+
+.waiting-text {
+    font-size: 12px;
+    color: #856404;
+    font-style: italic;
+}
+
+.amount-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #0c5460;
+}
+
+.btn-cancel, .btn-ack {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.btn-cancel {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #c82333;
+}
+
+.btn-ack {
+    background: #28a745;
+    color: white;
+}
+
+.btn-ack:hover {
+    background: #218838;
+}
+
+.transaction-card.saved {
+    background: #e2e3e5;
+    border: 1px solid #d6d8db;
+}
+
+.saved-text {
+    font-size: 12px;
+    color: #545b62;
+    font-style: italic;
+}
+
 /* Responsive layout for mobile */
 @media (max-width: 768px) {
     body { flex-direction: column; }
@@ -188,4 +329,679 @@ body {
 /* small mobile tweak so messages don't go edge-to-edge */
 @media (max-width: 480px) {
   .message { max-width: 85%; }
+}
+
+/* Table Styles */
+.table-container {
+    padding: 15px;
+    width: 100%;
+    overflow: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.data-table thead {
+    background: #4cafef;
+    color: white;
+}
+
+.data-table th, .data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.data-table tbody tr:hover {
+    background: #f5f5f5;
+}
+
+.data-table td code {
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.btn-add-row {
+    padding: 10px 16px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-add-row:hover {
+    background: #218838;
+}
+
+.btn-delete {
+    padding: 6px 12px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.2s;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+}
+
+/* Inventory Builder Styles */
+.inventory-builder {
+    padding: 20px;
+    max-width: 100%;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.inventory-builder h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 2px solid #4cafef;
+    padding-bottom: 10px;
+}
+
+.inventory-builder h4 {
+    color: #555;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.section-form {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+}
+
+.form-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.form-group label {
+    font-weight: bold;
+    min-width: 120px;
+}
+
+#sectionInput {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.btn-add {
+    padding: 8px 16px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.btn-add:hover {
+    background: #218838;
+}
+
+.sections-container {
+    margin-bottom: 20px;
+}
+
+.section-item {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.section-header {
+    background: #e7f3ff;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+}
+
+.btn-remove-section {
+    padding: 6px 12px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.2s;
+}
+
+.btn-remove-section:hover {
+    background: #c82333;
+}
+
+.items-list {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.btn-remove-item {
+    padding: 4px 10px;
+    background: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: background 0.2s;
+}
+
+.btn-remove-item:hover {
+    background: #e68900;
+}
+
+.btn-add-item {
+    padding: 8px 14px;
+    background: #17a2b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-add-item:hover {
+    background: #138496;
+}
+
+.json-preview {
+    background: #f5f5f5;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.json-preview strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.json-preview pre {
+    background: #2d2d2d;
+    color: #f8f8f2;
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.btn-save {
+    padding: 12px 24px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.btn-save:hover {
+    background: #218838;
+}
+
+.btn-cancel-form {
+    padding: 12px 24px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.btn-cancel-form:hover {
+    background: #5a6268;
+}
+
+.saved-inventories {
+    background: #f9f9f9;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.saved-item {
+    background: white;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.item-content {
+    flex: 1;
+    overflow-x: auto;
+}
+
+.empty-msg {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Order Modal Styles */
+#orderModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.order-modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.order-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px solid #4cafef;
+    background: #f9f9f9;
+}
+
+.order-modal-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.order-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.order-modal-close:hover {
+    color: #333;
+}
+
+#orderInventoryContainer {
+    padding: 20px;
+}
+
+.order-section {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.order-section-header {
+    background: #f5f5f5;
+    padding: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.order-section-header:hover {
+    background: #efefef;
+}
+
+.order-section-header span {
+    transition: transform 0.3s;
+    display: inline-block;
+}
+
+.order-items {
+    padding: 10px;
+    background: white;
+}
+
+.order-item-row {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.order-item-row:last-child {
+    border-bottom: none;
+}
+
+.order-item-row label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.order-item-row input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+#orderSummary {
+    padding: 15px 20px;
+    background: #f9f9f9;
+    border-top: 1px solid #ddd;
+    font-size: 18px;
+    color: #333;
+    text-align: right;
+}
+
+.order-modal-buttons {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+    border-top: 1px solid #ddd;
+    background: #f9f9f9;
+    justify-content: flex-end;
+}
+
+.btn-place-order {
+    padding: 12px 24px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-place-order:hover {
+    background: #218838;
+}
+
+.btn-cancel-order {
+    padding: 12px 24px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-cancel-order:hover {
+    background: #5a6268;
+}
+
+/* Order Card Styles (in chat) */
+.order-card {
+    background: white;
+    border: 2px solid #4cafef;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.order-card-header strong {
+    font-size: 16px;
+    color: #333;
+}
+
+.order-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.order-card.order-pending .order-status {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.order-card.order-completed .order-status {
+    background: #d4edda;
+    color: #155724;
+}
+
+.order-card-body {
+    padding: 10px 0;
+    color: #555;
+    font-size: 14px;
+}
+
+.order-card-body div {
+    margin: 5px 0;
+}
+
+.order-card-total {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e0e0e0;
+    color: #28a745;
+    font-size: 16px;
+}
+
+/* Orders Table Container */
+.orders-table-container {
+    padding: 20px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #4cafef;
+}
+
+.orders-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.btn-reset {
+    padding: 10px 16px;
+    background: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-reset:hover {
+    background: #f57c00;
+}
+
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Order Card for Seller View */
+.order-card-seller {
+    background: white;
+    border: 2px solid #2196f3;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+}
+
+.order-card-seller.order-pending {
+    border-left: 5px solid #ff9800;
+}
+
+.order-card-seller.order-completed {
+    border-left: 5px solid #28a745;
+    opacity: 0.8;
+}
+
+.order-card-seller:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.order-card-seller-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.order-card-seller-header > div:first-child {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.order-card-seller-header strong {
+    font-size: 18px;
+    color: #333;
+}
+
+.order-seller-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.order-card-seller.order-pending .order-seller-status {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.order-card-seller.order-completed .order-seller-status {
+    background: #d4edda;
+    color: #155724;
+}
+
+.customer-name {
+    color: #666;
+    font-size: 13px;
+}
+
+.order-card-seller-body {
+    padding: 12px 0;
+    color: #555;
+    font-size: 14px;
+}
+
+.order-card-seller-body div {
+    margin: 6px 0;
+}
+
+.order-seller-total {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+    color: #2196f3;
+    font-size: 16px;
+}
+
+.btn-complete-order {
+    width: 100%;
+    padding: 12px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    margin-top: 12px;
+    transition: background 0.2s;
+}
+
+.btn-complete-order:hover {
+    background: #218838;
 }

@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { ulid } = require("ulid");
 
 const SECRET_KEY = "itachi";
 const connect = require("./db.js"); // Make sure db.js exports a function that connects to your DB
@@ -32,11 +33,12 @@ const signup = async (req, res, next) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
+  const uid = ulid();
 
   try {
     await db.run(
-      "INSERT INTO users (username,hashedPassword ) VALUES (?, ?)",
-      [username, hashedPassword]
+      "INSERT INTO users (uid, username, hashedPassword) VALUES (?, ?, ?)",
+      [uid, username, hashedPassword]
     );
     return res.status(201).json({ message: "New user created successfully" });
   } catch (err) {
@@ -90,7 +92,11 @@ const signin = async (req, res, next) => {
     maxAge: 3600 * 1000
   });
 
-  return res.json({ message: "Login successful" });
+  return res.json({ 
+    message: "Login successful", 
+    uid: user.uid,
+    username: user.username
+  });
 };
 // ---------------- DELETE ACCOUNT ----------------
 const deleteaccount = async (req, res, next) => {
