@@ -183,11 +183,11 @@ function handlesocket(socket, io) {
 
     socket.on('transaction-confirmed', (data) => {
         try {
-            const { transactionId, type, amount, senderUid } = data;
-            if (!transactionId || !senderUid) return;
-            const senderSockets = userSockets.get(senderUid) || [];
-            if (senderSockets.length > 0) {
-                senderSockets.forEach(s => {
+            const { transactionId, type, amount, to } = data;
+            if (!transactionId || !to) return;
+            const targetSockets = userSockets.get(to) || [];
+            if (targetSockets.length > 0) {
+                targetSockets.forEach(s => {
                     s.emit('transaction-confirmed', {
                         transactionId,
                         type,
@@ -203,14 +203,17 @@ function handlesocket(socket, io) {
 
     socket.on('transaction-cancelled', (data) => {
         try {
-            const { transactionId, receiverUid } = data;
-            // Relay cancellation to receiver
-            if (receiverUid) {
-                const receiverSockets = userSockets.get(receiverUid) || [];
-                receiverSockets.forEach(s => {
-                    s.emit('transaction-cancelled', { transactionId });
+            const { transactionId, to, type, amount, status } = data;
+            if (!transactionId || !to) return;
+            const targetSockets = userSockets.get(to) || [];
+            targetSockets.forEach(s => {
+                s.emit('transaction-cancelled', {
+                    transactionId,
+                    type,
+                    amount,
+                    status
                 });
-            }
+            });
             console.log("Transaction cancelled:", transactionId);
         } catch (err) {
             console.error("Error handling transaction-cancelled:", err);

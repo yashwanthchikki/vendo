@@ -229,10 +229,32 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
 
     socket.on("transaction-cancelled", (data) => {
-        const { transactionId } = data;
-        removePendingCard(transactionId);
+        const { transactionId, type, amount, status } = data;
+        let resolvedType = type || null;
+        let resolvedAmount = typeof amount === "number" ? amount : null;
+
+        const handleCard = (card) => {
+            if (!card) return;
+            if (!resolvedType && card.dataset.type) {
+                resolvedType = card.dataset.type;
+            }
+            if (resolvedAmount === null && card.dataset.amount !== undefined) {
+                const parsedAmount = Number(card.dataset.amount);
+                if (!Number.isNaN(parsedAmount)) {
+                    resolvedAmount = parsedAmount;
+                }
+            }
+            card.remove();
+        };
+
+        const pendingCard = document.getElementById(`transaction-${transactionId}`);
+        handleCard(pendingCard);
         const requestCard = document.getElementById(`request-${transactionId}`);
-        if (requestCard) requestCard.remove();
+        handleCard(requestCard);
+
+        if (resolvedType && resolvedAmount !== null && !Number.isNaN(Number(resolvedAmount))) {
+            showSavedCard(resolvedType, Number(resolvedAmount), status || "Cancelled");
+        }
     });
 
     socket.on("orders", (data) => {
@@ -479,11 +501,13 @@ function sendTransaction(type, amount) {
 }
 
 function showPendingCard(transactionId, type, amount) {
-    const cardsContainer = document.getElementById("transactionCards");
+    const chat = document.getElementById("chat");
     const card = document.createElement("div");
     card.className = "transaction-card pending";
     card.id = `transaction-${transactionId}`;
-    
+    card.dataset.type = type;
+    card.dataset.amount = amount;
+
     const typeText = type.charAt(0).toUpperCase() + type.slice(1);
     card.innerHTML = `
         <div class="transaction-content">
@@ -494,7 +518,8 @@ function showPendingCard(transactionId, type, amount) {
             <button class="btn-cancel" onclick="cancelTransaction('${transactionId}')">Cancel</button>
         </div>
     `;
-    cardsContainer.appendChild(card);
+    chat.appendChild(card);
+    chat.scrollTop = chat.scrollHeight;
 }
 
 function removePendingCard(transactionId) {
@@ -504,12 +529,14 @@ function removePendingCard(transactionId) {
 
 function showTransactionRequest(data) {
     const { transactionId, type, amount, senderUid, senderUsername } = data;
-    
-    const cardsContainer = document.getElementById("transactionCards");
+
+    const chat = document.getElementById("chat");
     const card = document.createElement("div");
     card.className = "transaction-card request";
     card.id = `request-${transactionId}`;
-    
+    card.dataset.type = type;
+    card.dataset.amount = amount;
+
     let requestText = "";
     if (type === 'owe') {
         requestText = `${senderUsername} owes you`;
@@ -518,7 +545,7 @@ function showTransactionRequest(data) {
     } else if (type === 'claim') {
         requestText = `${senderUsername} claims from you`;
     }
-    
+
     card.innerHTML = `
         <div class="transaction-content">
             <div class="transaction-info">
@@ -531,7 +558,8 @@ function showTransactionRequest(data) {
             </div>
         </div>
     `;
-    cardsContainer.appendChild(card);
+    chat.appendChild(card);
+    chat.scrollTop = chat.scrollHeight;
 }
 
 function confirmTransaction(transactionId, type, amount, senderUid) {
@@ -562,35 +590,57 @@ function confirmTransaction(transactionId, type, amount, senderUid) {
         transactionId,
         type,
         amount,
-        senderUid
+        to: senderUid
     });
 }
 
 function declineTransaction(transactionId) {
     const card = document.getElementById(`request-${transactionId}`);
-    if (card) {
-        card.remove();
+    if (!card) return;
+    const { type, amount } = card.dataset;
+    const amountValue = Number(amount);
+    card.remove();
+    const targetUid = currentContact ? currentContact.uid : null;
+    if (targetUid) {
+        socket.emit("transaction-cancelled", {
+            transactionId,
+            to: targetUid,
+            type,
+            amount: Number.isNaN(amountValue) ? undefined : amountValue,
+            status: "Declined"
+        });
+    }
+    if (type && !Number.isNaN(amountValue)) {
+        showSavedCard(type, amountValue, "Declined");
     }
 }
 
 function cancelTransaction(transactionId) {
     const card = document.getElementById(`transaction-${transactionId}`);
-    if (card) {
-        card.remove();
-        socket.emit("transaction-cancelled", { 
-            transactionId,
-            receiverUid: currentContact ? currentContact.uid : null
-        });
+    if (!card) return;
+    const { type, amount } = card.dataset;
+    const amountValue = Number(amount);
+    const targetUid = currentContact ? currentContact.uid : null;
+    card.remove();
+    socket.emit("transaction-cancelled", { 
+        transactionId,
+        to: targetUid,
+        type,
+        amount: Number.isNaN(amountValue) ? undefined : amountValue,
+        status: "Cancelled"
+    });
+    if (type && !Number.isNaN(amountValue)) {
+        showSavedCard(type, amountValue, "Cancelled");
     }
 }
 
 function showSavedCard(type, amount, status = "Completed") {
-    const cardsContainer = document.getElementById("transactionCards");
+    const chat = document.getElementById("chat");
     const card = document.createElement("div");
     const transactionId = generateULID();
     card.className = "transaction-card saved";
     card.id = `saved-${transactionId}`;
-    
+
     const typeText = type.charAt(0).toUpperCase() + type.slice(1);
     card.innerHTML = `
         <div class="transaction-content">
@@ -600,7 +650,8 @@ function showSavedCard(type, amount, status = "Completed") {
             </div>
         </div>
     `;
-    cardsContainer.appendChild(card);
+    chat.appendChild(card);
+    chat.scrollTop = chat.scrollHeight;
 }
 
 // --- Table Views for Orders and Inventory ---
