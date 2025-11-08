@@ -9,10 +9,11 @@ function handlesocket(socket, io) {
     }
 
     // Add socket to user's list
-    if (!userSockets.has(socket.user.uid)) {
-        userSockets.set(socket.user.uid, []);
+    const uidKey = String(socket.user.uid);
+    if (!userSockets.has(uidKey)) {
+        userSockets.set(uidKey, []);
     }
-    userSockets.get(socket.user.uid).push(socket);
+    userSockets.get(uidKey).push(socket);
 
     socket.on('message', (data) => {
         try {
@@ -23,7 +24,7 @@ function handlesocket(socket, io) {
             }
 
             // Send to all sockets for recipient
-            const recipientSockets = userSockets.get(to) || [];
+            const recipientSockets = userSockets.get(String(to)) || [];
             if (recipientSockets.length > 0) {
                 recipientSockets.forEach(s => {
                     s.emit('message', {
@@ -44,7 +45,7 @@ function handlesocket(socket, io) {
         try {
             const { to, signal } = data;
             if (!to || !signal) return;
-            const recipientSockets = userSockets.get(to) || [];
+            const recipientSockets = userSockets.get(String(to)) || [];
             recipientSockets.forEach(s => s.emit('webrtc-signal', {
                 from: socket.user.uid,
                 signal
@@ -58,7 +59,7 @@ function handlesocket(socket, io) {
         try {
             const { to, amount, description } = data;
             if (!to || !amount) return;
-            const recipientSockets = userSockets.get(to) || [];
+            const recipientSockets = userSockets.get(String(to)) || [];
             if (recipientSockets.length > 0) {
                 recipientSockets.forEach(s => {
                     s.emit('money', {
@@ -80,7 +81,7 @@ function handlesocket(socket, io) {
         try {
             const { to, orderId, customerUid, customerUsername, items, totalPrice } = data;
             if (!to || !orderId || !items) return;
-            const recipientSockets = userSockets.get(to) || [];
+            const recipientSockets = userSockets.get(String(to)) || [];
             if (recipientSockets.length > 0) {
                 recipientSockets.forEach(s => {
                     s.emit('orders', {
@@ -122,7 +123,7 @@ function handlesocket(socket, io) {
         try {
             const { to, inventory } = data;
             if (!to || !inventory) return;
-            const recipientSockets = userSockets.get(to) || [];
+            const recipientSockets = userSockets.get(String(to)) || [];
             if (recipientSockets.length > 0) {
                 recipientSockets.forEach(s => {
                     s.emit('inventory-data', {
@@ -141,7 +142,7 @@ function handlesocket(socket, io) {
         try {
             const { to, orderId, status } = data;
             if (!to || !orderId) return;
-            const recipientSockets = userSockets.get(to) || [];
+            const recipientSockets = userSockets.get(String(to)) || [];
             if (recipientSockets.length > 0) {
                 recipientSockets.forEach(s => {
                     s.emit('order-completed', {
@@ -159,9 +160,10 @@ function handlesocket(socket, io) {
 
     socket.on('transaction-request', (data) => {
         try {
+            console.log('server received transaction-request', data, 'from', socket.user.uid);
             const { transactionId, type, amount, receiverUid, senderValue } = data;
             if (!transactionId || !receiverUid) return;
-            const receiverSockets = userSockets.get(receiverUid) || [];
+            const receiverSockets = userSockets.get(String(receiverUid)) || [];
             if (receiverSockets.length > 0) {
                 receiverSockets.forEach(s => {
                     s.emit('transaction-request', {
@@ -183,9 +185,10 @@ function handlesocket(socket, io) {
 
     socket.on('transaction-confirmed', (data) => {
         try {
+            console.log('server received transaction-confirmed', data, 'from', socket.user.uid);
             const { transactionId, type, amount, to } = data;
             if (!transactionId || !to) return;
-            const targetSockets = userSockets.get(to) || [];
+            const targetSockets = userSockets.get(String(to)) || [];
             if (targetSockets.length > 0) {
                 targetSockets.forEach(s => {
                     s.emit('transaction-confirmed', {
@@ -203,9 +206,10 @@ function handlesocket(socket, io) {
 
     socket.on('transaction-cancelled', (data) => {
         try {
+            console.log('server received transaction-cancelled', data, 'from', socket.user.uid);
             const { transactionId, to, type, amount, status } = data;
             if (!transactionId || !to) return;
-            const targetSockets = userSockets.get(to) || [];
+            const targetSockets = userSockets.get(String(to)) || [];
             targetSockets.forEach(s => {
                 s.emit('transaction-cancelled', {
                     transactionId,
@@ -222,13 +226,14 @@ function handlesocket(socket, io) {
 
     socket.on('disconnect', () => {
         try {
-            const sockets = userSockets.get(socket.user.uid) || [];
+            const uidKey = String(socket.user.uid);
+            const sockets = userSockets.get(uidKey) || [];
             const remaining = sockets.filter(s => s !== socket);
             if (remaining.length === 0) {
                 // Clean up empty entry
-                userSockets.delete(socket.user.uid);
+                userSockets.delete(uidKey);
             } else {
-                userSockets.set(socket.user.uid, remaining);
+                userSockets.set(uidKey, remaining);
             }
         } catch (err) {
             console.error("Error handling disconnect:", err);

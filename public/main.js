@@ -217,10 +217,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
 
     socket.on("transaction-request", (data) => {
+        console.log("received transaction-request", data);
         showTransactionRequest(data);
     });
 
     socket.on("transaction-confirmed", (data) => {
+        console.log("received transaction-confirmed", data);
         const { transactionId, amount, type, senderUid } = data;
         saveTransaction(transactionId, amount, senderUid);
         displayMoney();
@@ -229,6 +231,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
 
     socket.on("transaction-cancelled", (data) => {
+        console.log("received transaction-cancelled", data);
         const { transactionId, type, amount, status } = data;
         let resolvedType = type || null;
         let resolvedAmount = typeof amount === "number" ? amount : null;
@@ -491,13 +494,15 @@ function sendTransaction(type, amount) {
     showPendingCard(transactionId, type, amount);
     
     // Send transaction request to receiver
-    socket.emit("transaction-request", {
+    const payload = {
         transactionId,
         type,
         amount,
         receiverUid: currentContact.uid,
         senderValue
-    });
+    };
+    console.log("emit transaction-request", payload);
+    socket.emit("transaction-request", payload);
 }
 
 function showPendingCard(transactionId, type, amount) {
@@ -565,33 +570,31 @@ function showTransactionRequest(data) {
 function confirmTransaction(transactionId, type, amount, senderUid) {
     const card = document.getElementById(`request-${transactionId}`);
     if (!card) return;
-    
+
     let myValue = 0;
-    
-    // Determine the value for receiver based on sender's transaction type
+
     if (type === 'owe') {
-        myValue = -amount; // Sender owes me, so I owe them back (negative)
+        myValue = -amount;
     } else if (type === 'pay') {
-        myValue = amount; // Sender pays me
+        myValue = amount;
     } else if (type === 'claim') {
-        myValue = -amount; // Sender claims from me
+        myValue = -amount;
     }
-    
-    // Save to my database
+
     saveTransaction(transactionId, myValue, senderUid);
     displayMoney();
-    
-    // Convert to saved card (remove old card, show saved version)
+
     card.remove();
     showSavedCard(type, amount, "Acknowledged");
-    
-    // Notify sender
-    socket.emit("transaction-confirmed", {
+
+    const payload = {
         transactionId,
         type,
         amount,
         to: senderUid
-    });
+    };
+    console.log("emit transaction-confirmed", payload);
+    socket.emit("transaction-confirmed", payload);
 }
 
 function declineTransaction(transactionId) {
@@ -602,13 +605,15 @@ function declineTransaction(transactionId) {
     card.remove();
     const targetUid = currentContact ? currentContact.uid : null;
     if (targetUid) {
-        socket.emit("transaction-cancelled", {
+        const payload = {
             transactionId,
             to: targetUid,
             type,
             amount: Number.isNaN(amountValue) ? undefined : amountValue,
             status: "Declined"
-        });
+        };
+        console.log("emit transaction-cancelled (decline)", payload);
+        socket.emit("transaction-cancelled", payload);
     }
     if (type && !Number.isNaN(amountValue)) {
         showSavedCard(type, amountValue, "Declined");
@@ -622,13 +627,15 @@ function cancelTransaction(transactionId) {
     const amountValue = Number(amount);
     const targetUid = currentContact ? currentContact.uid : null;
     card.remove();
-    socket.emit("transaction-cancelled", { 
+    const payload = {
         transactionId,
         to: targetUid,
         type,
         amount: Number.isNaN(amountValue) ? undefined : amountValue,
         status: "Cancelled"
-    });
+    };
+    console.log("emit transaction-cancelled (cancel)", payload);
+    socket.emit("transaction-cancelled", payload);
     if (type && !Number.isNaN(amountValue)) {
         showSavedCard(type, amountValue, "Cancelled");
     }
